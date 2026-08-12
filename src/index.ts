@@ -55,6 +55,9 @@ import { renderTimelineSvg } from './timeline/renderer.ts'
 import { parseMindmapDiagram } from './mindmap/parser.ts'
 import { layoutMindmapDiagram } from './mindmap/layout.ts'
 import { renderMindmapSvg } from './mindmap/renderer.ts'
+import { parseQuadrantDiagram } from './quadrant/parser.ts'
+import { layoutQuadrantDiagram } from './quadrant/layout.ts'
+import { renderQuadrantSvg } from './quadrant/renderer.ts'
 
 /**
  * Detect the diagram type from the mermaid source text.
@@ -70,6 +73,7 @@ function detectDiagramType(text: string): 'flowchart' | 'sequence' | 'class' | '
   if (/^erdiagram\s*$/.test(firstLine)) return 'er'
   if (/^timeline(?:\s|$)/i.test(firstLine)) return 'timeline'
   if (/^mindmap(?:\s|$)/i.test(firstLine)) return 'mindmap'
+  if (/^quadrantChart(?:\s|$)/i.test(firstLine)) return 'quadrant'
 
   // Default: flowchart/state (handled by parseMermaid internally)
   return 'flowchart'
@@ -171,6 +175,11 @@ export function renderMermaidSVG(
       const diagram = parseMindmapDiagram(rawLines)
       const positioned = layoutMindmapDiagram(diagram, options)
       return renderMindmapSvg(positioned, colors, font, transparent)
+    }
+    case 'quadrant': {
+      const chart = parseQuadrantDiagram(lines)
+      const positioned = layoutQuadrantDiagram(chart, options)
+      return renderQuadrantSvg(positioned, colors, font, transparent)
     }
     case 'flowchart':
     default: {
