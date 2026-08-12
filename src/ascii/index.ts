@@ -26,6 +26,7 @@ import { renderClassAscii } from './class-diagram.ts'
 import { renderErAscii } from './er-diagram.ts'
 import { renderXYChartAscii } from './xychart.ts'
 import { renderPieAscii } from './pie.ts'
+import { renderTimelineAscii } from './timeline.ts'
 import { detectColorMode, DEFAULT_ASCII_THEME, diagramColorsToAsciiTheme } from './ansi.ts'
 import type { AsciiConfig, AsciiTheme, ColorMode } from './types.ts'
 
@@ -69,6 +70,7 @@ function detectDiagramType(text: string): 'flowchart' | 'sequence' | 'class' | '
   if (/^classdiagram\s*$/.test(firstLine)) return 'class'
   if (/^erdiagram\s*$/.test(firstLine)) return 'er'
   if (/^pie(?:\s|$)/i.test(firstLine)) return 'pie'
+  if (/^timeline(?:\s|$)/i.test(firstLine)) return 'timeline'
 
   // Default: flowchart/state (handled by parseMermaid internally)
   return 'flowchart'
@@ -137,6 +139,9 @@ export function renderMermaidASCII(
 
     case 'er':
       return renderErAscii(text, config, colorMode, theme)
+
+    case 'timeline':
+      return renderTimelineAscii(text, config, colorMode, theme)
 
     case 'flowchart':
     default: {
