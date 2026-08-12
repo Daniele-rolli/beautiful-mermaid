@@ -28,7 +28,12 @@ export function renderQuadrantAscii(
   const hasTitle = !!chart.title
   const titleRows = hasTitle ? 2 : 0
 
-  const width = QW * 2 + 3 // +1 each side padding +1 center
+  const yHigh = chart.yAxis?.high ?? ''
+  const yLow = chart.yAxis?.low ?? ''
+  const yGutter = Math.max(yHigh.length, yLow.length) + 1
+  const plotLeft = yGutter + 1
+
+  const width = plotLeft + QW * 2 + 2
   const height = titleRows + QH * 2 + 3
 
   const canvas = mkCanvas(width - 1, height - 1)
@@ -40,7 +45,6 @@ export function renderQuadrantAscii(
 
   const plotTop = titleRows
   const plotBottom = plotTop + QH * 2 + 1
-  const plotLeft = 1
   const plotRight = width - 2
   const midX = plotLeft + QW + 1
   const midY = plotTop + QH + 1
@@ -76,8 +80,8 @@ export function renderQuadrantAscii(
     if (chart.xAxis.high) drawText(canvas, { x: plotRight - chart.xAxis.high.length - 1, y: plotBottom + 1 }, chart.xAxis.high)
   }
   if (chart.yAxis) {
-    if (chart.yAxis.high) drawText(canvas, { x: 0, y: plotTop + 1 }, chart.yAxis.high)
-    if (chart.yAxis.low) drawText(canvas, { x: 0, y: plotBottom - 1 }, chart.yAxis.low)
+    if (yHigh) drawText(canvas, { x: plotLeft - yHigh.length - 1, y: plotTop + 1 }, yHigh)
+    if (yLow) drawText(canvas, { x: plotLeft - yLow.length - 1, y: plotBottom - 1 }, yLow)
   }
 
   // Points
