@@ -102,7 +102,7 @@ export function layoutMindmapDiagram(diagram: Mindmap, _options: RenderOptions =
       text: node.text,
       shape: node.shape,
       depth,
-      x: px - width / 2,
+      x: px,
       y: py,
       width,
       height,
