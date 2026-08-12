@@ -74,35 +74,49 @@ export function layoutTimelineDiagram(diagram: TimelineDiagram, _options: Render
     return { width: maxWidth, height: y - TIMELINE.sectionGap, direction: 'TD', ...(diagram.title ? { title: { text: diagram.title, x: maxWidth / 2, y: TIMELINE.padding + 16 } } : {}), sections }
   }
 
-  // LR: all periods in one horizontal run; section bands stack vertically
+  // LR: each section is a horizontal band — section label on top,
+  // periods laid left→right, events below. Bands stack vertically.
+  let y = TIMELINE.padding + titleH
+  let maxWidth = 0
   const sections = diagram.sections.map((section, si) => {
+    const y0 = y
+    const periodY = y0 + TIMELINE.sectionHeaderH
     let x = TIMELINE.padding
+    let maxEvents = 0
     const periods = section.periods.map(period => {
       const px = x
       x += TIMELINE.periodBoxW + TIMELINE.periodGapX
+      maxEvents = Math.max(maxEvents, period.events.length)
+      const eventYs: number[] = []
+      let ey = periodY + TIMELINE.periodBoxH + TIMELINE.axisGap
+      period.events.forEach(ev => {
+        eventYs.push(ey)
+        ey += TIMELINE.eventGapY
+      })
       return {
         label: period.label,
         x: px,
-        y: TIMELINE.padding + titleH + TIMELINE.sectionHeaderH + TIMELINE.axisGap,
+        y: periodY,
         width: TIMELINE.periodBoxW,
         height: TIMELINE.periodBoxH,
         events: period.events.map((ev, ei) => ({
           text: ev,
           x: px + TIMELINE.periodBoxW / 2,
-          y: TIMELINE.padding + titleH + TIMELINE.sectionHeaderH + TIMELINE.axisGap + TIMELINE.periodBoxH + TIMELINE.axisGap + ei * TIMELINE.eventGapY,
+          y: eventYs[ei]!,
           width: textW(ev),
           height: TIMELINE.eventLabelH,
         })),
       }
     })
+    const bandHeight = TIMELINE.sectionHeaderH + TIMELINE.axisGap + TIMELINE.periodBoxH + TIMELINE.axisGap + maxEvents * TIMELINE.eventGapY
     const width = Math.max(...periods.map(p => p.x + TIMELINE.periodBoxW), TIMELINE.padding)
-    return { name: section.name, colorIndex: si, x: TIMELINE.padding, y: TIMELINE.padding + titleH, width, height: 1, periods }
+    maxWidth = Math.max(maxWidth, width)
+    y += bandHeight + TIMELINE.sectionGap
+    return { name: section.name, colorIndex: si, x: TIMELINE.padding, y: y0, width, height: bandHeight, periods }
   })
 
-  const width = Math.max(...sections.map(s => s.width), TIMELINE.padding * 2)
-  const height = TIMELINE.padding + titleH + TIMELINE.sectionHeaderH + TIMELINE.axisGap + TIMELINE.periodBoxH + TIMELINE.axisGap
-    + Math.max(...diagram.sections.map(s => s.periods.length > 0 ? s.periods[0]!.events.length : 0)) * TIMELINE.eventGapY
-    + TIMELINE.padding
+  const width = maxWidth
+  const height = y - TIMELINE.sectionGap + TIMELINE.padding
 
   return { width, height, direction: 'LR', ...(diagram.title ? { title: { text: diagram.title, x: width / 2, y: TIMELINE.padding + 16 } } : {}), sections }
 }
