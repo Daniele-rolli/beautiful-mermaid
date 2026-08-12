@@ -1,4 +1,3 @@
-import type { PieChart } from './types.ts'
 import type { DiagramColors } from '../theme.ts'
 import { svgOpenTag, buildStyleBlock } from '../theme.ts'
 import { getSeriesColor, CHART_ACCENT_FALLBACK } from '../xychart/colors.ts'
@@ -12,7 +11,8 @@ import { TEXT_BASELINE_SHIFT, FONT_SIZES, FONT_WEIGHTS } from '../styles.ts'
 //   - Donut (annular) slices, gap-free
 //   - Percent labels at the ring midline, centered on each slice
 //   - Legend on the right with color swatches
-//   - showData adds value text next to each legend percent
+//   - Each slice carries a data-value attribute for consumers/tooltips; the
+//     legend shows label + percentage
 // ============================================================================
 
 export interface PositionedPieSlice {
@@ -93,10 +93,8 @@ export function renderPieSvg(
   parts.push(`<style>
   .pie-slice { stroke: var(--bg); stroke-width: 2; }
   .pie-label { fill: var(--_text-sec); }
-  .pie-value { fill: var(--_text-muted); }
   .pie-legend-label { fill: var(--_text); }
   .pie-legend-value { fill: var(--_text-muted); }
-  .pie-legend-swatch { stroke: color-mix(in srgb, var(--fg) 12%, var(--bg)); }
   .pie-title { fill: var(--_text); }
   svg {
 ${colorVarDefs.join('\n')}
@@ -114,6 +112,7 @@ ${seriesRules.join('\n')}
   // Slices + percent labels
   for (const s of positioned.slices) {
     const d = donutSlicePath(cx, cy, outerRadius, innerRadius, s.startAngle, s.endAngle)
+    // data-value is always emitted on every slice, regardless of showData
     parts.push(`<path d="${d}" class="pie-slice pie-color-${s.colorIndex}" data-value="${s.value}"/>`)
 
     const midR = (outerRadius + innerRadius) / 2

@@ -1,7 +1,6 @@
 import type { PieChart } from './types.ts'
 import type { PositionedPie, PositionedPieSlice } from './renderer.ts'
 import type { RenderOptions } from '../types.ts'
-import { estimateTextWidth, FONT_SIZES, FONT_WEIGHTS } from '../styles.ts'
 
 // ============================================================================
 // Pie chart layout — donut geometry
