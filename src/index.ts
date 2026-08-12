@@ -52,6 +52,9 @@ import { renderPieSvg } from './pie/renderer.ts'
 import { parseTimelineDiagram } from './timeline/parser.ts'
 import { layoutTimelineDiagram } from './timeline/layout.ts'
 import { renderTimelineSvg } from './timeline/renderer.ts'
+import { parseMindmapDiagram } from './mindmap/parser.ts'
+import { layoutMindmapDiagram } from './mindmap/layout.ts'
+import { renderMindmapSvg } from './mindmap/renderer.ts'
 
 /**
  * Detect the diagram type from the mermaid source text.
@@ -66,6 +69,7 @@ function detectDiagramType(text: string): 'flowchart' | 'sequence' | 'class' | '
   if (/^classdiagram\s*$/.test(firstLine)) return 'class'
   if (/^erdiagram\s*$/.test(firstLine)) return 'er'
   if (/^timeline(?:\s|$)/i.test(firstLine)) return 'timeline'
+  if (/^mindmap(?:\s|$)/i.test(firstLine)) return 'mindmap'
 
   // Default: flowchart/state (handled by parseMermaid internally)
   return 'flowchart'
@@ -161,6 +165,12 @@ export function renderMermaidSVG(
       const diagram = parseTimelineDiagram(lines)
       const positioned = layoutTimelineDiagram(diagram, options)
       return renderTimelineSvg(positioned, colors, font, transparent)
+    }
+    case 'mindmap': {
+      const rawLines = text.split('\n').filter(l => l.trim().length > 0 && !l.trim().startsWith('%%'))
+      const diagram = parseMindmapDiagram(rawLines)
+      const positioned = layoutMindmapDiagram(diagram, options)
+      return renderMindmapSvg(positioned, colors, font, transparent)
     }
     case 'flowchart':
     default: {
