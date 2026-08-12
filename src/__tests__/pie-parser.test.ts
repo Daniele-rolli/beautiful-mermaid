@@ -38,4 +38,8 @@ describe('parsePieDiagram', () => {
   it('throws on invalid line', () => {
     expect(() => parsePieDiagram(preprocess('pie\n  not a valid section'))).toThrow()
   })
+
+  it('throws on junk after the pie keyword', () => {
+    expect(() => parsePieDiagram(preprocess('pie banana\n  "A" : 1'))).toThrow()
+  })
 })

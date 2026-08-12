@@ -9,9 +9,9 @@ import { colorizeText } from './ansi.ts'
 //
 // Indented tree with box-drawing connectors:
 //   root
-//   ├── Origins
-//   │   └── Long history
-//   └── Research
+//   ├─ Origins
+//   │  └─ Long history
+//   └─ Research
 // ============================================================================
 
 export function renderMindmapAscii(

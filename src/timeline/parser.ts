@@ -17,11 +17,6 @@ export function parseTimelineDiagram(lines: string[]): TimelineDiagram {
   let current: TimelineSection | null = null
 
   const ensureSection = (name = 'default'): TimelineSection => {
-    if (current && current.periods.length === 0 && diagram.sections.length === 1 && diagram.sections[0]!.periods.length === 0) {
-      // Reuse the empty default section instead of creating a duplicate
-      current.name = name
-      return current
-    }
     const section: TimelineSection = { name, periods: [] }
     diagram.sections.push(section)
     current = section

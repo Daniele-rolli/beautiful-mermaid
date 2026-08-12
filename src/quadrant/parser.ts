@@ -6,7 +6,7 @@ import type { QuadrantAxis, QuadrantChart, QuadrantPoint } from './types.ts'
 // Supported syntax:
 //   quadrantChart
 //   title <text>
-//   x-axis [Low --> High]        — labels optional: "Low" --> "High"
+//   x-axis Low --> High          — optional quoted labels: "Low" --> "High"
 //   y-axis Low --> High
 //   quadrant-1 <label>           — quadrants 1..4
 //   "Label": [x, y]              — points
@@ -26,11 +26,11 @@ export function parseQuadrantDiagram(lines: string[]): QuadrantChart {
       continue
     }
 
-    const axisMatch = line.match(/^(x|y)-axis\s+([^\[]*?)(?:\[([^\]]*)\])?\s*-->\s*(.*)$/)
+    const axisMatch = line.match(/^(x|y)-axis\s+([^\[]*?)\s*-->\s*(.*)$/)
     if (axisMatch) {
       const isX = axisMatch[1]!.toLowerCase() === 'x'
       const lowRaw = axisMatch[2]!.trim()
-      const highRaw = axisMatch[4]!.trim()
+      const highRaw = axisMatch[3]!.trim()
       const axis: QuadrantAxis = {
         low: stripQuotes(lowRaw) || undefined,
         high: stripQuotes(highRaw) || undefined,

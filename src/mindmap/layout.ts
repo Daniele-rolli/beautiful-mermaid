@@ -1,4 +1,4 @@
-import type { Mindmap, MindmapNode, MindmapShape } from './types.ts'
+import type { Mindmap, MindmapNode } from './types.ts'
 import type { PositionedMindmap, PositionedMindmapNode } from './renderer.ts'
 import type { RenderOptions } from '../types.ts'
 import type { ElkNode, ElkExtendedEdge } from 'elkjs'

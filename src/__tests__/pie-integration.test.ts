@@ -45,4 +45,11 @@ describe('pie – SVG rendering', () => {
     expect(svg).not.toContain('NaN')
     expect(svg).toContain('--pie-color-0')
   })
+
+  it('renders a single-slice pie as a full ring', async () => {
+    const svg = await renderMermaid('pie\n  "All" : 100')
+    expect(svg).toContain('fill-rule="evenodd"')
+    expect(svg).toContain('All')
+    expect(svg).toContain('100%')
+  })
 })

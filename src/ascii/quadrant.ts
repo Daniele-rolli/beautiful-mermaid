@@ -1,4 +1,4 @@
-import type { AsciiConfig, AsciiTheme, ColorMode, Canvas, RoleCanvas, CharRole } from './types.ts'
+import type { AsciiConfig, AsciiTheme, ColorMode } from './types.ts'
 import { parseQuadrantDiagram } from '../quadrant/parser.ts'
 import { mkCanvas, mkRoleCanvas, canvasToString, drawText, setRole } from './canvas.ts'
 

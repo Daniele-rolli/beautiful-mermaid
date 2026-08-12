@@ -7,8 +7,8 @@ import { colorizeText } from './ansi.ts'
 // ASCII renderer — Timeline
 //
 // Renders a timeline as vertical flow: sections top→down, periods left→right,
-// events listed below each period. Direction keyword (LR/TD) affects the
-// grouping layout: LR lays periods in a single horizontal run per section.
+// events listed below each period. The direction keyword is accepted by the
+// parser but the ASCII layout always flows vertically.
 // ============================================================================
 
 export function renderTimelineAscii(

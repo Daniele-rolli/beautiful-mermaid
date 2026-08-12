@@ -1,7 +1,6 @@
 import type { QuadrantChart } from './types.ts'
 import type { PositionedQuadrant } from './renderer.ts'
 import type { RenderOptions } from '../types.ts'
-import { estimateTextWidth, FONT_SIZES, FONT_WEIGHTS } from '../styles.ts'
 
 // ============================================================================
 // Quadrant chart layout — 2×2 grid
@@ -16,9 +15,7 @@ const Q = {
   titleGap: 44,
   plotW: 480,
   plotH: 400,
-  axisLabelGap: 28,
   quadrantPad: 16,
-  pointR: 6,
   pointLabelGap: 10,
 } as const
 

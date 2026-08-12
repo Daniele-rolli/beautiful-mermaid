@@ -48,4 +48,15 @@ describe('parseTimelineDiagram', () => {
   it('throws on invalid line', () => {
     expect(() => parseTimelineDiagram(preprocess('timeline\n  random text'))).toThrow()
   })
+
+  it('keeps consecutive section headers as separate sections', () => {
+    const d = parseTimelineDiagram(preprocess(`
+      timeline
+        section A
+        section B
+          2002 : LinkedIn
+    `))
+    expect(d.sections.map(s => s.name)).toEqual(['A', 'B'])
+    expect(d.sections[1]!.periods[0]!.label).toBe('2002')
+  })
 })

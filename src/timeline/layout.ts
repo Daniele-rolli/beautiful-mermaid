@@ -115,7 +115,7 @@ export function layoutTimelineDiagram(diagram: TimelineDiagram, _options: Render
     return { name: section.name, colorIndex: si, x: TIMELINE.padding, y: y0, width, height: bandHeight, periods }
   })
 
-  const width = maxWidth
+  const width = maxWidth + TIMELINE.padding
   const height = y - TIMELINE.sectionGap + TIMELINE.padding
 
   return { width, height, direction: 'LR', ...(diagram.title ? { title: { text: diagram.title, x: width / 2, y: TIMELINE.padding + 16 } } : {}), sections }

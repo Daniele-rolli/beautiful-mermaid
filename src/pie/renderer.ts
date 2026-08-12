@@ -47,6 +47,17 @@ function polar(cx: number, cy: number, radius: number, angle: number): { x: numb
 
 /** Annular (donut) slice path from startAngle to endAngle (radians, clockwise from top). */
 function donutSlicePath(cx: number, cy: number, outerR: number, innerR: number, a0: number, a1: number): string {
+  if (a1 - a0 >= Math.PI * 2 - 1e-6) {
+    return [
+      `M${r(cx - outerR)},${r(cy)}`,
+      `a${r(outerR)},${r(outerR)} 0 1 1 ${r(outerR * 2)},0`,
+      `a${r(outerR)},${r(outerR)} 0 1 1 ${r(-outerR * 2)},0`,
+      `M${r(cx - innerR)},${r(cy)}`,
+      `a${r(innerR)},${r(innerR)} 0 1 1 ${r(innerR * 2)},0`,
+      `a${r(innerR)},${r(innerR)} 0 1 1 ${r(-innerR * 2)},0`,
+      'Z',
+    ].join(' ')
+  }
   const o0 = polar(cx, cy, outerR, a0)
   const o1 = polar(cx, cy, outerR, a1)
   const i0 = polar(cx, cy, innerR, a0)
@@ -113,7 +124,7 @@ ${seriesRules.join('\n')}
   for (const s of positioned.slices) {
     const d = donutSlicePath(cx, cy, outerRadius, innerRadius, s.startAngle, s.endAngle)
     // data-value is always emitted on every slice, regardless of showData
-    parts.push(`<path d="${d}" class="pie-slice pie-color-${s.colorIndex}" data-value="${s.value}"/>`)
+    parts.push(`<path d="${d}" fill-rule="evenodd" class="pie-slice pie-color-${s.colorIndex}" data-value="${s.value}"/>`)
 
     const midR = (outerRadius + innerRadius) / 2
     const lp = polar(cx, cy, midR, s.midAngle)

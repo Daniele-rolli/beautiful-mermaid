@@ -353,7 +353,7 @@ pie showData
   "Product C" : 25
 ```
 
-Donut charts with slice percentages, an optional legend, and a `showData` flag that renders values alongside the percentages.
+Donut charts with slice percentages and an optional legend. Every slice carries a `data-value` attribute for consumers; the `showData` header flag is parsed for mermaid compatibility.
 
 ### Timeline
 

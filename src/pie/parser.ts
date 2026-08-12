@@ -16,13 +16,20 @@ export function parsePieDiagram(lines: string[]): PieChart {
     // Header: pie [showData] — may carry an inline title: pie title "Text"
     if (/^pie(?:\s|$)/i.test(line)) {
       if (/\bshowData\b/i.test(line)) chart.showData = true
-      const inlineTitle = line.match(/title\s+"([^"]+)"/)
-      if (inlineTitle) chart.title = inlineTitle[1]
+      const rest = line.replace(/^pie\s*/i, '').trim()
+      if (rest) {
+        const inlineTitle = rest.match(/^title\s+"([^"]+)"$/)
+        if (inlineTitle) {
+          chart.title = inlineTitle[1]
+        } else if (!/^showData\s*$/i.test(rest)) {
+          throw new Error(`Invalid pie diagram line: "${line}"`)
+        }
+      }
       continue
     }
 
     // Title: title "Text"
-    const titleMatch = line.match(/^title\s+"([^"]+)"/)
+    const titleMatch = line.match(/^title\s+"([^"]+)"\s*$/)
     if (titleMatch) {
       chart.title = titleMatch[1]
       continue
