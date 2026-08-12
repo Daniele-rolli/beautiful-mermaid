@@ -87,17 +87,19 @@ export function layoutMindmapDiagram(diagram: Mindmap, _options: RenderOptions =
     posByKey.set(n.id, { x: n.x ?? 0, y: n.y ?? 0 })
   }
 
-  // ELK's root node occupies the full canvas; subtract its x/y so the tree
+  // ELK's root node occupies the full canvas; subtract its x so the tree
   // starts at (padding, padding+titleH+rootH/2).
   const rootX = posByKey.get(keyOf(diagram.root, [0]))?.x ?? MM.padding
-  const rootY = posByKey.get(keyOf(diagram.root, [0]))?.y ?? MM.padding
+  // ELK centers the tallest column on the root's row; anchor to the
+  // minimum y so the whole tree stays inside the canvas.
+  const minElkY = Math.min(...[...posByKey.values()].map(p => p.y))
 
   const place = (node: MindmapNode, path: number[], depth: number): PositionedMindmapNode => {
     const key = keyOf(node, path)
     const pos = posByKey.get(key) ?? { x: 0, y: 0 }
     const { width, height } = sizeNode(node)
     const px = pos.x - rootX + MM.padding
-    const py = pos.y - rootY + MM.padding + titleH + height / 2
+    const py = pos.y - minElkY + MM.padding + titleH + height / 2
     return {
       text: node.text,
       shape: node.shape,
@@ -113,9 +115,8 @@ export function layoutMindmapDiagram(diagram: Mindmap, _options: RenderOptions =
   const root = place(diagram.root, [0], 0)
 
   // Compute overall bounds by walking the tree
-  const canvas = result as { width?: number; height?: number }
-  const width = canvas.width ?? (maxX(root) + MM.padding)
-  const height = canvas.height ?? (maxY(root) - minY(root) + MM.padding * 2)
+  const width = maxX(root) + MM.padding
+  const height = maxY(root) - minY(root) + MM.padding * 2
 
   return {
     width,
