@@ -37,7 +37,7 @@ The ASCII rendering engine is based on [mermaid-ascii](https://github.com/Alexan
 
 ## Features
 
-- **6 diagram types** — Flowcharts, State, Sequence, Class, ER, and XY Charts (bar, line, combined)
+- **10 diagram types** — Flowcharts, State, Sequence, Class, ER, XY Charts (bar, line, combined), Pie, Timeline, Mindmap, and Quadrant
 - **Dual output** — SVG for rich UIs, ASCII/Unicode for terminals
 - **Synchronous rendering** — No async, no flash. Works with React `useMemo()`
 - **15 built-in themes** — And dead simple to add your own
@@ -342,6 +342,62 @@ erDiagram
   ORDER ||--|{ LINE_ITEM : contains
   PRODUCT ||--o{ LINE_ITEM : "is in"
 ```
+
+### Pie Charts
+
+```
+pie showData
+  title "Revenue by Product"
+  "Product A" : 45
+  "Product B" : 30
+  "Product C" : 25
+```
+
+Donut charts with slice percentages, an optional legend, and a `showData` flag that renders values alongside the percentages.
+
+### Timeline
+
+```
+timeline LR
+  title History of Social Media
+  section Platforms
+    2002 : LinkedIn
+    2004 : Facebook
+  section Mobile
+    2010 : Instagram
+```
+
+Chronological event timelines. Direction defaults to `LR` (left-to-right); use `timeline TD` for a top-down layout. Periods come first (`{period} : {event}`), with one or more colon-separated events, or continuation lines starting with `:`. Optional `section <name>` lines group periods with a shared color scheme.
+
+### Mindmaps
+
+```
+mindmap
+  root((Mindmap))
+    Origins
+      Long history
+    Research
+      [Shapes]
+      (Branches)
+```
+
+Indentation-based tree diagrams. Node shapes: `(text)` rounded, `[text]` square, `((text))` circle, `{{text}}` hexagon. The root is rendered in the accent color; descendants use muted fills.
+
+### Quadrant Charts
+
+```
+quadrantChart
+  title Reach and engagement
+  x-axis Low Reach --> High Reach
+  y-axis Low Engagement --> High Engagement
+  quadrant-1 We should expand
+  quadrant-2 Need to promote
+  quadrant-3 Re-evaluate
+  quadrant-4 May be improved
+  Campaign A: [0.3, 0.6]
+```
+
+2×2 prioritization grids with floating axis labels, quadrant labels, and plotted points.
 
 ### Inline Edge Styling
 
