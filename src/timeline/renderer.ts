@@ -7,10 +7,10 @@ import { TEXT_BASELINE_SHIFT, FONT_SIZES, FONT_WEIGHTS } from '../styles.ts'
 // ============================================================================
 // Timeline — SVG renderer
 //
-// A real timeline: a continuous axis line runs through the period boxes,
-// each period gets a dot on the axis, and events hang below the axis —
-// a single vertical spine per period with short horizontal ticks into
-// right-anchored labels (so labels never overlap their spine).
+// A clean, minimal timeline in the library's chart aesthetic: a thin axis
+// line, period dots on the axis with floating labels above, and events
+// hanging below the axis as small dots with right-anchored labels. No heavy
+// boxes — labels float freely and dots carry the color.
 //
 // Each section gets a color from the accent palette; periods/events under
 // a section share that color.
@@ -19,11 +19,13 @@ import { TEXT_BASELINE_SHIFT, FONT_SIZES, FONT_WEIGHTS } from '../styles.ts'
 export interface PositionedTimelineEvent { text: string; x: number; y: number; width: number; height: number }
 export interface PositionedTimelinePeriod {
   label: string
+  /** Dot center x. */
   x: number
+  /** Dot center y (on the axis for LR). */
   y: number
   width: number
   height: number
-  /** Horizontal center of the period box — the axis/dot/spine column. */
+  /** Horizontal center of the period — the axis/dot/spine column. */
   centerX: number
   events: PositionedTimelineEvent[]
 }
@@ -34,7 +36,7 @@ export interface PositionedTimelineSection {
   y: number
   width: number
   height: number
-  /** LR: horizontal axis through the period boxes. */
+  /** LR: horizontal axis through the period dots. */
   axisX1?: number
   axisX2?: number
   axisY?: number
@@ -54,7 +56,9 @@ export interface PositionedTimeline {
 
 const r = (n: number): string => String(Math.round(n * 10) / 10)
 
-const AXIS_DOT_R = 4
+const PERIOD_DOT_R = 4.5
+const EVENT_DOT_R = 3
+const PERIOD_LABEL_GAP = 12
 
 export function renderTimelineSvg(
   positioned: PositionedTimeline,
@@ -80,19 +84,19 @@ export function renderTimelineSvg(
       ? `var(--accent, ${CHART_ACCENT_FALLBACK})`
       : getSeriesColor(idx, accentHex, bgHex)
     colorVarDefs.push(`    --timeline-color-${idx}: ${value};`)
-    seriesRules.push(`  .timeline-period-color-${idx} { fill: color-mix(in srgb, var(--bg) 82%, var(--timeline-color-${idx}) 18%); stroke: var(--timeline-color-${idx}); }`)
+    seriesRules.push(`  .timeline-period-color-${idx} { fill: var(--timeline-color-${idx}); }`)
     seriesRules.push(`  .timeline-axis-color-${idx} { stroke: var(--timeline-color-${idx}); }`)
     seriesRules.push(`  .timeline-dot-color-${idx} { fill: var(--timeline-color-${idx}); stroke: var(--bg); }`)
-    seriesRules.push(`  .timeline-spine-color-${idx} { stroke: var(--timeline-color-${idx}); fill: none; }`)
+    seriesRules.push(`  .timeline-spine-color-${idx} { stroke: var(--timeline-color-${idx}); }`)
   }
 
   parts.push(`<style>
-  .timeline-axis { stroke-width: 2; }
-  .timeline-axis-dot { stroke-width: 2; }
-  .timeline-period-box { stroke-width: 1.5; rx: 8; }
+  .timeline-axis { stroke-width: 1.5; stroke-linecap: round; }
+  .timeline-period-dot { stroke-width: 2; }
+  .timeline-event-dot { stroke-width: 1.5; }
   .timeline-period-label { fill: var(--_text); }
   .timeline-event-label { fill: var(--_text-sec); }
-  .timeline-event-tick { stroke-width: 1.5; }
+  .timeline-spine { stroke-width: 1.5; stroke-dasharray: 3 3; }
   .timeline-section-label { fill: var(--_text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
   .timeline-title { fill: var(--_text); }
   svg {
@@ -109,13 +113,14 @@ ${seriesRules.join('\n')}
   }
 
   for (const section of positioned.sections) {
+    // Section label
     parts.push(
       `<text x="${r(section.x)}" y="${r(section.y + 16)}" text-anchor="start" ` +
       `font-size="${FONT_SIZES.groupHeader}" font-weight="${FONT_WEIGHTS.groupHeader}" ` +
       `dy="${TEXT_BASELINE_SHIFT}" class="timeline-section-label">${escapeXml(section.name)}</text>`
     )
 
-    // Continuous timeline axis
+    // Thin continuous axis
     if (section.axisX1 !== undefined && section.axisX2 !== undefined && section.axisY !== undefined) {
       parts.push(
         `<line x1="${r(section.axisX1)}" y1="${r(section.axisY)}" x2="${r(section.axisX2)}" y2="${r(section.axisY)}" ` +
@@ -130,54 +135,52 @@ ${seriesRules.join('\n')}
     }
 
     for (const period of section.periods) {
-      parts.push(
-        `<rect x="${r(period.x)}" y="${r(period.y)}" width="${r(period.width)}" height="${r(period.height)}" ` +
-        `class="timeline-period-box timeline-period-color-${section.colorIndex}"/>`
-      )
-      parts.push(
-        `<text x="${r(period.x + period.width / 2)}" y="${r(period.y + period.height / 2)}" text-anchor="middle" ` +
-        `font-size="${FONT_SIZES.nodeLabel}" font-weight="${FONT_WEIGHTS.nodeLabel}" ` +
-        `dy="${TEXT_BASELINE_SHIFT}" class="timeline-period-label">${escapeXml(period.label)}</text>`
-      )
-
-      // Dot on the axis at this period's center
+      // Period dot on the axis + floating label above it
       if (section.axisY !== undefined) {
         parts.push(
-          `<circle cx="${r(period.centerX)}" cy="${r(section.axisY)}" r="${AXIS_DOT_R}" ` +
-          `class="timeline-axis-dot timeline-dot-color-${section.colorIndex}"/>`
+          `<circle cx="${r(period.centerX)}" cy="${r(section.axisY)}" r="${PERIOD_DOT_R}" ` +
+          `class="timeline-period-dot timeline-dot-color-${section.colorIndex}"/>`
+        )
+        parts.push(
+          `<text x="${r(period.centerX)}" y="${r(section.axisY - PERIOD_LABEL_GAP)}" text-anchor="middle" ` +
+          `font-size="${FONT_SIZES.nodeLabel}" font-weight="${FONT_WEIGHTS.nodeLabel}" ` +
+          `dy="${TEXT_BASELINE_SHIFT}" class="timeline-period-label">${escapeXml(period.label)}</text>`
         )
       }
       if (section.axisX !== undefined) {
         parts.push(
-          `<circle cx="${r(section.axisX)}" cy="${r(period.y + period.height / 2)}" r="${AXIS_DOT_R}" ` +
-          `class="timeline-axis-dot timeline-dot-color-${section.colorIndex}"/>`
+          `<circle cx="${r(section.axisX)}" cy="${r(period.y)}" r="${PERIOD_DOT_R}" ` +
+          `class="timeline-period-dot timeline-dot-color-${section.colorIndex}"/>`
+        )
+        parts.push(
+          `<text x="${r(section.axisX + PERIOD_DOT_R + 8)}" y="${r(period.y)}" text-anchor="start" ` +
+          `font-size="${FONT_SIZES.nodeLabel}" font-weight="${FONT_WEIGHTS.nodeLabel}" ` +
+          `dy="${TEXT_BASELINE_SHIFT}" class="timeline-period-label">${escapeXml(period.label)}</text>`
         )
       }
 
-      // Events: one vertical spine down from the box, then a horizontal
-      // tick into each right-anchored label.
+      // Events: a dashed spine down from the period, dots on it, labels right
       if (period.events.length > 0) {
         const lastEventY = period.events[period.events.length - 1]!.y
-        const spineClass = `timeline-spine-color-${section.colorIndex}`
+        const spineClass = `timeline-spine timeline-spine-color-${section.colorIndex}`
         if (positioned.direction === 'LR') {
           parts.push(
-            `<line x1="${r(period.centerX)}" y1="${r(period.y + period.height)}" ` +
+            `<line x1="${r(period.centerX)}" y1="${r(section.axisY! + PERIOD_DOT_R)}" ` +
             `x2="${r(period.centerX)}" y2="${r(lastEventY)}" class="${spineClass}"/>`
           )
         } else {
           parts.push(
-            `<line x1="${r(period.x + period.width)}" y1="${r(period.y + period.height / 2)}" ` +
-            `x2="${r(period.x + period.width + 14)}" y2="${r(period.y + period.height / 2)}" ` +
+            `<line x1="${r(section.axisX! + PERIOD_DOT_R)}" y1="${r(period.y)}" ` +
+            `x2="${r(section.axisX! + PERIOD_DOT_R + 12)}" y2="${r(period.y)}" ` +
             `class="${spineClass}"/>`
           )
         }
 
         for (const ev of period.events) {
-          // Horizontal tick from the spine column to the label
-          const tickFrom = positioned.direction === 'LR' ? period.centerX : period.x + period.width + 14
+          const dotX = positioned.direction === 'LR' ? period.centerX : section.axisX! + PERIOD_DOT_R + 12
           parts.push(
-            `<line x1="${r(tickFrom)}" y1="${r(ev.y)}" x2="${r(ev.x - 6)}" y2="${r(ev.y)}" ` +
-            `class="timeline-event-tick ${spineClass}"/>`
+            `<circle cx="${r(dotX)}" cy="${r(ev.y)}" r="${EVENT_DOT_R}" ` +
+            `class="timeline-event-dot timeline-dot-color-${section.colorIndex}"/>`
           )
           parts.push(
             `<text x="${r(ev.x)}" y="${r(ev.y)}" text-anchor="start" ` +
