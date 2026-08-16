@@ -7,6 +7,8 @@ import type { RenderOptions } from '../types.ts'
 //
 // Slices start at -90° (12 o'clock) and sweep clockwise.
 // Percent labels sit at the ring midline; legend sits on the right.
+// Legend rows are single-line: swatch · label · value · percent, with the
+// value and percent right-aligned in fixed columns so numbers line up.
 // ============================================================================
 
 const PIE = {
@@ -16,8 +18,10 @@ const PIE = {
   titleGap: 44,
   legendGap: 40,
   legendSwatch: 14,
-  legendRowH: 26,
-  legendLabelW: 180,
+  legendRowH: 24,
+  labelColW: 150,
+  valueColW: 70,
+  pctColW: 46,
 } as const
 
 export function layoutPieDiagram(diagram: PieChart, _options: RenderOptions = {}): PositionedPie {
@@ -28,7 +32,12 @@ export function layoutPieDiagram(diagram: PieChart, _options: RenderOptions = {}
   const titleH = hasTitle ? PIE.titleGap : 0
   const diameter = PIE.outerRadius * 2
 
-  const legendWidth = PIE.legendGap + PIE.legendLabelW + PIE.padding
+  const legendLeft = PIE.padding + diameter + PIE.legendGap
+  const labelEndX = legendLeft + PIE.labelColW
+  const valueEndX = labelEndX + PIE.valueColW
+  const pctEndX = valueEndX + PIE.pctColW
+
+  const legendWidth = PIE.legendGap + PIE.labelColW + PIE.valueColW + PIE.pctColW + PIE.padding
   const width = PIE.padding + diameter + legendWidth
   const height = PIE.padding + titleH + diameter + PIE.padding
 
@@ -55,8 +64,12 @@ export function layoutPieDiagram(diagram: PieChart, _options: RenderOptions = {}
 
   const legend = slices.map((s, i) => ({
     label: s.label,
+    value: s.value,
     percent: s.percent,
-    x: PIE.padding + diameter + PIE.legendGap + PIE.legendSwatch + 8,
+    swatchX: legendLeft,
+    labelX: legendLeft + PIE.legendSwatch + 10,
+    valueX: valueEndX,
+    pctX: pctEndX,
     y: cy + (i - slices.length / 2) * PIE.legendRowH,
     colorIndex: i,
   }))

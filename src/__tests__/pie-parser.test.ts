@@ -42,4 +42,26 @@ describe('parsePieDiagram', () => {
   it('throws on junk after the pie keyword', () => {
     expect(() => parsePieDiagram(preprocess('pie banana\n  "A" : 1'))).toThrow()
   })
+
+  it('parses unquoted multi-word inline title (mermaid docs form)', () => {
+    const chart = parsePieDiagram(preprocess(`
+      pie title Pets adopted by volunteers
+        "Dogs" : 386
+        "Cats" : 85
+        "Rats" : 15
+    `))
+    expect(chart.title).toBe('Pets adopted by volunteers')
+    expect(chart.slices.map(s => s.value)).toEqual([386, 85, 15])
+  })
+
+  it('parses showData combined with an unquoted inline title', () => {
+    const chart = parsePieDiagram(preprocess('pie showData title What VIM users use\n  "Vim" : 80'))
+    expect(chart.showData).toBe(true)
+    expect(chart.title).toBe('What VIM users use')
+  })
+
+  it('parses a standalone unquoted title line', () => {
+    const chart = parsePieDiagram(preprocess('pie\n  title Revenue by Product\n  "A" : 1'))
+    expect(chart.title).toBe('Revenue by Product')
+  })
 })

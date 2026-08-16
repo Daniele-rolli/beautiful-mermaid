@@ -4,23 +4,29 @@ import type { PieChart, PieSlice } from './types.ts'
 // Pie chart parser
 //
 // Supported syntax:
-//   pie [showData]
-//   title "Chart Title"
+//   pie [showData] [title <text>]   — title may be inline and unquoted
+//   title <text>                    — standalone title line (quoted or not)
 //   "Label" : value
 // ============================================================================
+
+function stripQuotes(text: string): string {
+  return text.length >= 2 && text.startsWith('"') && text.endsWith('"')
+    ? text.slice(1, -1)
+    : text
+}
 
 export function parsePieDiagram(lines: string[]): PieChart {
   const chart: PieChart = { showData: false, slices: [] }
 
   for (const line of lines) {
-    // Header: pie [showData] — may carry an inline title: pie title "Text"
+    // Header: pie [showData] [title <text>]
     if (/^pie(?:\s|$)/i.test(line)) {
-      if (/\bshowData\b/i.test(line)) chart.showData = true
       const rest = line.replace(/^pie\s*/i, '').trim()
       if (rest) {
-        const inlineTitle = rest.match(/^title\s+"([^"]+)"$/)
-        if (inlineTitle) {
-          chart.title = inlineTitle[1]
+        if (/\bshowData\b/i.test(rest)) chart.showData = true
+        const titleAt = rest.search(/title\s+/i)
+        if (titleAt !== -1) {
+          chart.title = stripQuotes(rest.slice(titleAt).replace(/^title\s+/i, '').trim())
         } else if (!/^showData\s*$/i.test(rest)) {
           throw new Error(`Invalid pie diagram line: "${line}"`)
         }
@@ -28,10 +34,10 @@ export function parsePieDiagram(lines: string[]): PieChart {
       continue
     }
 
-    // Title: title "Text"
-    const titleMatch = line.match(/^title\s+"([^"]+)"\s*$/)
+    // Title: title <text>
+    const titleMatch = line.match(/^title\s+(.+)$/)
     if (titleMatch) {
-      chart.title = titleMatch[1]
+      chart.title = stripQuotes(titleMatch[1]!.trim())
       continue
     }
 

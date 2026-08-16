@@ -34,12 +34,28 @@ export interface PositionedPie {
   innerRadius: number
   title?: { text: string; x: number; y: number }
   slices: PositionedPieSlice[]
-  legend: Array<{ label: string; percent: number; x: number; y: number; colorIndex: number }>
+  legend: Array<{
+    label: string
+    value: number
+    percent: number
+    swatchX: number
+    labelX: number
+    valueX: number
+    pctX: number
+    y: number
+    colorIndex: number
+  }>
 }
 
 const r = (n: number): string => String(Math.round(n * 10) / 10)
 
 const fmtPct = (p: number): string => `${Math.round(p * 100)}%`
+
+/** Format a slice value: integers as-is, decimals trimmed to 2 places. */
+const fmtValue = (v: number): string => {
+  if (Number.isInteger(v)) return String(v)
+  return String(Math.round(v * 100) / 100)
+}
 
 function polar(cx: number, cy: number, radius: number, angle: number): { x: number; y: number } {
   return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) }
@@ -105,7 +121,8 @@ export function renderPieSvg(
   .pie-slice { stroke: var(--bg); stroke-width: 2; }
   .pie-label { fill: var(--_text-sec); }
   .pie-legend-label { fill: var(--_text); }
-  .pie-legend-value { fill: var(--_text-muted); }
+  .pie-legend-value { fill: var(--_text); }
+  .pie-legend-pct { fill: var(--_text-muted); }
   .pie-title { fill: var(--_text); }
   svg {
 ${colorVarDefs.join('\n')}
@@ -135,20 +152,27 @@ ${seriesRules.join('\n')}
     )
   }
 
-  // Legend
+  // Legend — one row per slice: swatch · label · value · percent.
+  // Value and percent are right-aligned so numbers line up and read easily.
   for (const item of positioned.legend) {
     parts.push(
-      `<rect x="${r(item.x - 22)}" y="${r(item.y - 9)}" width="14" height="14" rx="3" ` +
+      `<rect x="${r(item.swatchX)}" y="${r(item.y - 7)}" width="14" height="14" rx="3" ` +
       `class="pie-swatch pie-color-${item.colorIndex}"/>`
     )
     parts.push(
-      `<text x="${r(item.x)}" y="${r(item.y)}" text-anchor="start" ` +
-      `font-size="${FONT_SIZES.edgeLabel}" font-weight="${FONT_WEIGHTS.edgeLabel}" ` +
+      `<text x="${r(item.labelX)}" y="${r(item.y)}" text-anchor="start" ` +
+      `font-size="${FONT_SIZES.nodeLabel}" font-weight="${FONT_WEIGHTS.nodeLabel}" ` +
       `dy="${TEXT_BASELINE_SHIFT}" class="pie-legend-label">${escapeXml(item.label)}</text>`
     )
     parts.push(
-      `<text x="${r(item.x)}" y="${r(item.y + 15)}" text-anchor="start" ` +
-      `font-size="${FONT_SIZES.edgeLabel}" font-weight="400" dy="${TEXT_BASELINE_SHIFT}" class="pie-legend-value">${escapeXml(fmtPct(item.percent))}</text>`
+      `<text x="${r(item.valueX)}" y="${r(item.y)}" text-anchor="end" ` +
+      `font-size="${FONT_SIZES.nodeLabel}" font-weight="600" ` +
+      `dy="${TEXT_BASELINE_SHIFT}" class="pie-legend-value">${escapeXml(fmtValue(item.value))}</text>`
+    )
+    parts.push(
+      `<text x="${r(item.pctX)}" y="${r(item.y)}" text-anchor="end" ` +
+      `font-size="${FONT_SIZES.edgeLabel}" font-weight="400" ` +
+      `dy="${TEXT_BASELINE_SHIFT}" class="pie-legend-pct">${escapeXml(fmtPct(item.percent))}</text>`
     )
   }
 
