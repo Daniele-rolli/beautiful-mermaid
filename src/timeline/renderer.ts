@@ -113,12 +113,15 @@ ${seriesRules.join('\n')}
   }
 
   for (const section of positioned.sections) {
-    // Section label
-    parts.push(
-      `<text x="${r(section.x)}" y="${r(section.y + 16)}" text-anchor="start" ` +
-      `font-size="${FONT_SIZES.groupHeader}" font-weight="${FONT_WEIGHTS.groupHeader}" ` +
-      `dy="${TEXT_BASELINE_SHIFT}" class="timeline-section-label">${escapeXml(section.name)}</text>`
-    )
+    // Section label — hidden for the implicit default section (periods with
+    // no explicit `section` line), matching mermaid.
+    if (section.name !== 'default') {
+      parts.push(
+        `<text x="${r(section.x)}" y="${r(section.y + 16)}" text-anchor="start" ` +
+        `font-size="${FONT_SIZES.groupHeader}" font-weight="${FONT_WEIGHTS.groupHeader}" ` +
+        `dy="${TEXT_BASELINE_SHIFT}" class="timeline-section-label">${escapeXml(section.name)}</text>`
+      )
+    }
 
     // Thin continuous axis
     if (section.axisX1 !== undefined && section.axisX2 !== undefined && section.axisY !== undefined) {

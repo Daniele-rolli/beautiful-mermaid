@@ -53,4 +53,15 @@ describe('timeline – SVG rendering', () => {
     expect(svg).toContain('timeline-period-color-0')
     expect(svg).toContain('timeline-period-color-1')
   })
+
+  it('does not render a label for the implicit default section', async () => {
+    const svg = await renderMermaid(`timeline
+  title Releases
+  2024 : Alpha
+  2025 : Beta`)
+    expect(svg).not.toContain('DEFAULT')
+    expect(svg).not.toMatch(/class="timeline-section-label"/)
+    expect(svg).toContain('2024')
+    expect(svg).toContain('2025')
+  })
 })
