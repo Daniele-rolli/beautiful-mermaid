@@ -90,7 +90,7 @@ export function layoutTimelineDiagram(diagram: TimelineDiagram, _options: Render
     const axisY = periodY + TIMELINE.periodBoxH / 2
     let x = TIMELINE.padding
     let maxEvents = 0
-    let maxLabelRight = TIMELINE.padding
+    let maxLabelRight: number = TIMELINE.padding
     const periods = section.periods.map(period => {
       const px = x
       const centerX = px + TIMELINE.periodBoxW / 2

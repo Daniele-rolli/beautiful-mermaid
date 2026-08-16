@@ -49,7 +49,6 @@ export function renderQuadrantAscii(
   const midX = plotLeft + QW + 1
   const midY = plotTop + QH + 1
 
-  // Outer border + dividers
   for (let x = plotLeft; x <= plotRight; x++) {
     canvas[x]![plotTop] = H
     canvas[x]![plotBottom] = H
@@ -64,7 +63,6 @@ export function renderQuadrantAscii(
   }
   canvas[midX]![midY] = X
 
-  // Quadrant labels
   const placeQuadrant = (text: string, x: number, y: number) => {
     if (!text) return
     drawText(canvas, { x, y }, text)
@@ -74,7 +72,6 @@ export function renderQuadrantAscii(
   placeQuadrant(chart.quadrantLabels[2]!, plotLeft + 2, midY + 1)
   placeQuadrant(chart.quadrantLabels[3]!, midX + 2, midY + 1)
 
-  // Axis labels
   if (chart.xAxis) {
     if (chart.xAxis.low) drawText(canvas, { x: plotLeft + 2, y: plotBottom + 1 }, chart.xAxis.low)
     if (chart.xAxis.high) drawText(canvas, { x: plotRight - chart.xAxis.high.length - 1, y: plotBottom + 1 }, chart.xAxis.high)
@@ -84,7 +81,6 @@ export function renderQuadrantAscii(
     if (yLow) drawText(canvas, { x: plotLeft - yLow.length - 1, y: plotBottom - 1 }, yLow)
   }
 
-  // Points
   const span = (chart.xAxis?.max ?? 1) - (chart.xAxis?.min ?? 0) || 1
   for (const p of chart.points) {
     const nx = (p.x - (chart.xAxis?.min ?? 0)) / span

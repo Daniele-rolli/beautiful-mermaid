@@ -65,11 +65,9 @@ export function renderQuadrantSvg(
     )
   }
 
-  // Dividers
   parts.push(`<line x1="${r(midX)}" y1="${r(plot.y)}" x2="${r(midX)}" y2="${r(plot.y + plot.height)}" class="quadrant-divider"/>`)
   parts.push(`<line x1="${r(plot.x)}" y1="${r(midY)}" x2="${r(plot.x + plot.width)}" y2="${r(midY)}" class="quadrant-divider"/>`)
 
-  // Axis labels
   if (positioned.xAxis) {
     parts.push(
       `<text x="${r(plot.x)}" y="${r(plot.y + plot.height + 24)}" text-anchor="start" ` +
@@ -91,7 +89,6 @@ export function renderQuadrantSvg(
     )
   }
 
-  // Quadrant labels
   for (const ql of positioned.quadrantLabels) {
     if (!ql.text) continue
     parts.push(
@@ -100,7 +97,6 @@ export function renderQuadrantSvg(
     )
   }
 
-  // Points
   for (const p of positioned.points) {
     parts.push(`<circle cx="${r(p.x)}" cy="${r(p.y)}" r="6" class="quadrant-point"/>`)
     parts.push(

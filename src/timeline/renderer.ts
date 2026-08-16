@@ -109,7 +109,6 @@ ${seriesRules.join('\n')}
   }
 
   for (const section of positioned.sections) {
-    // Section label
     parts.push(
       `<text x="${r(section.x)}" y="${r(section.y + 16)}" text-anchor="start" ` +
       `font-size="${FONT_SIZES.groupHeader}" font-weight="${FONT_WEIGHTS.groupHeader}" ` +
@@ -131,7 +130,6 @@ ${seriesRules.join('\n')}
     }
 
     for (const period of section.periods) {
-      // Period box + label
       parts.push(
         `<rect x="${r(period.x)}" y="${r(period.y)}" width="${r(period.width)}" height="${r(period.height)}" ` +
         `class="timeline-period-box timeline-period-color-${section.colorIndex}"/>`

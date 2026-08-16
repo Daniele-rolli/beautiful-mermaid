@@ -137,7 +137,6 @@ ${seriesRules.join('\n')}
     )
   }
 
-  // Slices + percent labels
   for (const s of positioned.slices) {
     const d = donutSlicePath(cx, cy, outerRadius, innerRadius, s.startAngle, s.endAngle)
     // data-value is always emitted on every slice, regardless of showData
