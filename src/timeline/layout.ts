@@ -93,19 +93,37 @@ export function layoutTimelineDiagram(diagram: TimelineDiagram, _options: Render
   // LR: each section is a horizontal band — section label on top, a thin
   // axis line, period dots on the axis with floating labels above, and
   // events hanging below. Bands stack vertically.
+  //
+  // Column widths are driven by content: the widest of the period label
+  // or the event labels determines each column's width, so long labels
+  // never bleed into (or overlap) neighboring columns.
   let y = TIMELINE.padding + titleH
   let maxWidth = 0
   const sections = diagram.sections.map((section, si) => {
     const y0 = y
     const axisY = y0 + TIMELINE.sectionHeaderH + TIMELINE.axisGap
-    let x = TIMELINE.padding
     let maxEvents = 0
     let maxLabelRight: number = TIMELINE.padding
-    const periods = section.periods.map(period => {
-      const centerX = x + 40
-      x += 80 + TIMELINE.periodGapX
+
+    // Pass 1: compute each period's column width from its content
+    const colWidths = section.periods.map(period => {
+      const labelW = textW(period.label)
+      const maxEventEnd = Math.max(0, ...period.events.map(ev =>
+        TIMELINE.eventDotR + TIMELINE.eventLabelGap + textW(ev)
+      ))
+      // Column must accommodate both the centered label and the rightward event labels.
+      // label sits centered; events extend right. Make column wide enough for the
+      // wider side, then double it for symmetry (centering the dot).
+      return Math.max(labelW, maxEventEnd * 2)
+    })
+
+    // Pass 2: place each column using its content-driven width
+    let x = TIMELINE.padding
+    const periods = section.periods.map((period, pi) => {
+      const colW = colWidths[pi]!
+      const centerX = x + colW / 2
+      x += colW + TIMELINE.periodGapX
       maxEvents = Math.max(maxEvents, period.events.length)
-      // Period label floats above the axis, centered on the dot.
       const labelHalf = textW(period.label) / 2
       maxLabelRight = Math.max(maxLabelRight, centerX + labelHalf)
       const eventYs: number[] = []
@@ -132,7 +150,7 @@ export function layoutTimelineDiagram(diagram: TimelineDiagram, _options: Render
       }
     })
     const axisX1 = TIMELINE.padding
-    const axisX2 = x - TIMELINE.periodGapX - 40
+    const axisX2 = x - TIMELINE.periodGapX
     const lastEventY = axisY + TIMELINE.eventStartGap + (maxEvents - 1) * TIMELINE.eventGapY
     const bandHeight = TIMELINE.sectionHeaderH + TIMELINE.axisGap + (lastEventY - axisY) + TIMELINE.bandBottomPad
     const contentWidth = Math.max(axisX2, maxLabelRight, textW(section.name) + TIMELINE.padding)
