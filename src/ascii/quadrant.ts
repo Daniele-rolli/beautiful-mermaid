@@ -6,7 +6,6 @@ import { mkCanvas, mkRoleCanvas, canvasToString, drawText, setRole } from './can
 // ASCII renderer — Quadrant chart
 //
 // 2×2 grid with divider lines, floating axis labels, and points.
-// Points are marked with the first letter of their label.
 // ============================================================================
 
 const QW = 40

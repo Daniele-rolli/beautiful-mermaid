@@ -48,9 +48,6 @@ export function layoutQuadrantDiagram(chart: QuadrantChart, _options: RenderOpti
     }
   })
 
-  const midX = plot.x + plot.width / 2
-  const midY = plot.y + plot.height / 2
-
   const quadrantLabels = [
     { text: chart.quadrantLabels[0]!, x: plot.x + plot.width - Q.quadrantPad, y: plot.y + Q.quadrantPad + 8, anchor: 'end' as const },
     { text: chart.quadrantLabels[1]!, x: plot.x + Q.quadrantPad, y: plot.y + Q.quadrantPad + 8, anchor: 'start' as const },

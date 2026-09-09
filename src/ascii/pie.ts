@@ -10,8 +10,7 @@ import { colorizeText } from './ansi.ts'
 //   Product A  ████████████████████ 45%
 //   Product B  ██████████████      30%
 //
-// Bars use the theme accent palette (series colors). Colors are emitted
-// only when colorMode supports it (via colorizeText).
+// Bars use the theme accent palette (series colors).
 // ============================================================================
 
 const BAR_WIDTH = 20

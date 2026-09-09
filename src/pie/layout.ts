@@ -7,8 +7,6 @@ import type { RenderOptions } from '../types.ts'
 //
 // Slices start at -90° (12 o'clock) and sweep clockwise.
 // Percent labels sit at the ring midline; legend sits on the right.
-// Legend rows are single-line: swatch · label · value · percent, with the
-// value and percent right-aligned in fixed columns so numbers line up.
 // ============================================================================
 
 const PIE = {

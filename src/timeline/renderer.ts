@@ -1,42 +1,37 @@
 import type { DiagramColors } from '../theme.ts'
 import { svgOpenTag, buildStyleBlock } from '../theme.ts'
-import { getSeriesColor, CHART_ACCENT_FALLBACK } from '../xychart/colors.ts'
 import { escapeXml } from '../multiline-utils.ts'
-import { TEXT_BASELINE_SHIFT, FONT_SIZES, FONT_WEIGHTS } from '../styles.ts'
+import { TEXT_BASELINE_SHIFT, FONT_SIZES, FONT_WEIGHTS, STROKE_WIDTHS } from '../styles.ts'
 
 // ============================================================================
 // Timeline — SVG renderer
 //
-// A clean, minimal timeline in the library's chart aesthetic: a thin axis
-// line, period dots on the axis with floating labels above, and events
-// hanging below the axis as small dots with right-anchored labels. No heavy
-// boxes — labels float freely and dots carry the color.
-//
-// Each section gets a color from the accent palette; periods/events under
-// a section share that color.
+// Flat like the rest of the blocks: boxes use var(--_node-fill) /
+// var(--_node-stroke) with var(--_text) labels, connectors use var(--_line),
+// and only the small TD dots use the single accent (same as quadrant
+// points). No per-section solid fills, no contrast-text computation.
 // ============================================================================
 
 export interface PositionedTimelineEvent { text: string; x: number; y: number; width: number; height: number }
 export interface PositionedTimelinePeriod {
   label: string
-  /** Dot center x. */
+  /** Box left x (LR) or dot center x (TD). */
   x: number
-  /** Dot center y (on the axis for LR). */
+  /** Box top y (LR) or dot center y (TD). */
   y: number
   width: number
   height: number
-  /** Horizontal center of the period — the axis/dot/spine column. */
+  /** Box center (LR) or dot/spine column (TD). */
   centerX: number
   events: PositionedTimelineEvent[]
 }
 export interface PositionedTimelineSection {
   name: string
-  colorIndex: number
   x: number
   y: number
   width: number
   height: number
-  /** LR: horizontal axis through the period dots. */
+  /** LR: horizontal axis below the period boxes. */
   axisX1?: number
   axisX2?: number
   axisY?: number
@@ -56,9 +51,8 @@ export interface PositionedTimeline {
 
 const r = (n: number): string => String(Math.round(n * 10) / 10)
 
-const PERIOD_DOT_R = 4.5
-const EVENT_DOT_R = 3
-const PERIOD_LABEL_GAP = 12
+export const PERIOD_DOT_R = 4.5
+export const EVENT_DOT_R = 3
 
 export function renderTimelineSvg(
   positioned: PositionedTimeline,
@@ -69,40 +63,26 @@ export function renderTimelineSvg(
   const { width, height } = positioned
   const parts: string[] = []
 
-  const maxColorIdx = Math.max(0, ...positioned.sections.map(s => s.colorIndex))
-  const svgTag = svgOpenTag(width, height, colors, transparent)
-    .replace('<svg ', `<svg data-timeline-colors="${maxColorIdx}" `)
-  parts.push(svgTag)
+  parts.push(svgOpenTag(width, height, colors, transparent))
   parts.push(buildStyleBlock(font, false))
-
-  const accentHex = colors.accent ?? CHART_ACCENT_FALLBACK
-  const bgHex = colors.bg
-  const colorVarDefs: string[] = []
-  const seriesRules: string[] = []
-  for (let idx = 0; idx <= maxColorIdx; idx++) {
-    const value = idx === 0
-      ? `var(--accent, ${CHART_ACCENT_FALLBACK})`
-      : getSeriesColor(idx, accentHex, bgHex)
-    colorVarDefs.push(`    --timeline-color-${idx}: ${value};`)
-    seriesRules.push(`  .timeline-period-color-${idx} { fill: var(--timeline-color-${idx}); }`)
-    seriesRules.push(`  .timeline-axis-color-${idx} { stroke: var(--timeline-color-${idx}); }`)
-    seriesRules.push(`  .timeline-dot-color-${idx} { fill: var(--timeline-color-${idx}); stroke: var(--bg); }`)
-    seriesRules.push(`  .timeline-spine-color-${idx} { stroke: var(--timeline-color-${idx}); }`)
-  }
+  parts.push(
+    `<defs><marker id="timeline-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">` +
+    `<path d="M0,0 L8,4 L0,8 Z" fill="var(--_line)"/></marker></defs>`
+  )
 
   parts.push(`<style>
-  .timeline-axis { stroke-width: 1.5; stroke-linecap: round; }
-  .timeline-period-dot { stroke-width: 2; }
-  .timeline-event-dot { stroke-width: 1.5; }
+  .timeline-axis-line { stroke: var(--_line); stroke-width: 1.5; stroke-linecap: round; }
+  .timeline-connector { stroke: var(--_line); stroke-width: 1; stroke-dasharray: 3 3; fill: none; }
+  .timeline-box { fill: var(--_node-fill); stroke: var(--_node-stroke); stroke-width: ${STROKE_WIDTHS.innerBox}; }
+  .timeline-box-label { fill: var(--_text); font-weight: 600; }
+  .timeline-event-label { fill: var(--_text); font-weight: 500; }
+  .timeline-period-dot { fill: var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg))); stroke: var(--bg); stroke-width: 2; }
+  .timeline-event-dot { fill: var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg))); stroke: var(--bg); stroke-width: 1.5; }
   .timeline-period-label { fill: var(--_text); }
-  .timeline-event-label { fill: var(--_text-sec); }
-  .timeline-spine { stroke-width: 1.5; stroke-dasharray: 3 3; }
+  .timeline-event-label-side { fill: var(--_text-sec); }
+  .timeline-spine { stroke: var(--_line); stroke-width: 1; stroke-dasharray: 3 3; }
   .timeline-section-label { fill: var(--_text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
   .timeline-title { fill: var(--_text); }
-  svg {
-${colorVarDefs.join('\n')}
-  }
-${seriesRules.join('\n')}
 </style>`)
 
   if (positioned.title) {
@@ -123,72 +103,76 @@ ${seriesRules.join('\n')}
       )
     }
 
-    // Thin continuous axis
-    if (section.axisX1 !== undefined && section.axisX2 !== undefined && section.axisY !== undefined) {
+    if (positioned.direction === 'LR') {
+      const { axisX1, axisX2, axisY } = section
+      if (axisX1 === undefined || axisX2 === undefined || axisY === undefined) continue
       parts.push(
-        `<line x1="${r(section.axisX1)}" y1="${r(section.axisY)}" x2="${r(section.axisX2)}" y2="${r(section.axisY)}" ` +
-        `class="timeline-axis timeline-axis-color-${section.colorIndex}"/>`
+        `<line x1="${r(axisX1)}" y1="${r(axisY)}" x2="${r(axisX2)}" y2="${r(axisY)}" ` +
+        `class="timeline-axis-line" marker-end="url(#timeline-arrow)"/>`
       )
-    }
-    if (section.axisX !== undefined && section.axisY1 !== undefined && section.axisY2 !== undefined) {
-      parts.push(
-        `<line x1="${r(section.axisX)}" y1="${r(section.axisY1)}" x2="${r(section.axisX)}" y2="${r(section.axisY2)}" ` +
-        `class="timeline-axis timeline-axis-color-${section.colorIndex}"/>`
-      )
-    }
 
-    for (const period of section.periods) {
-      // Period dot on the axis + floating label above it
-      if (section.axisY !== undefined) {
+      for (const period of section.periods) {
+        // Dashed connector, drawn BEFORE the boxes so they occlude it where
+        // they overlap — dashes show only in the gaps.
+        const lastEvent = period.events[period.events.length - 1]
+        const throughY = lastEvent ? lastEvent.y + lastEvent.height : axisY
+        // Keep in sync with TIMELINE.tailLen in layout.ts.
+        const connectorBottom = throughY + 22
         parts.push(
-          `<circle cx="${r(period.centerX)}" cy="${r(section.axisY)}" r="${PERIOD_DOT_R}" ` +
-          `class="timeline-period-dot timeline-dot-color-${section.colorIndex}"/>`
+          `<line x1="${r(period.centerX)}" y1="${r(period.y)}" x2="${r(period.centerX)}" y2="${r(connectorBottom)}" ` +
+          `class="timeline-connector" marker-end="url(#timeline-arrow)"/>`
         )
-        parts.push(
-          `<text x="${r(period.centerX)}" y="${r(section.axisY - PERIOD_LABEL_GAP)}" text-anchor="middle" ` +
-          `font-size="${FONT_SIZES.nodeLabel}" font-weight="${FONT_WEIGHTS.nodeLabel}" ` +
-          `dy="${TEXT_BASELINE_SHIFT}" class="timeline-period-label">${escapeXml(period.label)}</text>`
-        )
-      }
-      if (section.axisX !== undefined) {
-        parts.push(
-          `<circle cx="${r(section.axisX)}" cy="${r(period.y)}" r="${PERIOD_DOT_R}" ` +
-          `class="timeline-period-dot timeline-dot-color-${section.colorIndex}"/>`
-        )
-        parts.push(
-          `<text x="${r(section.axisX + PERIOD_DOT_R + 8)}" y="${r(period.y)}" text-anchor="start" ` +
-          `font-size="${FONT_SIZES.nodeLabel}" font-weight="${FONT_WEIGHTS.nodeLabel}" ` +
-          `dy="${TEXT_BASELINE_SHIFT}" class="timeline-period-label">${escapeXml(period.label)}</text>`
-        )
-      }
 
-      // Events: a dashed spine down from the period, dots on it, labels right
-      if (period.events.length > 0) {
-        const lastEventY = period.events[period.events.length - 1]!.y
-        const spineClass = `timeline-spine timeline-spine-color-${section.colorIndex}`
-        if (positioned.direction === 'LR') {
-          parts.push(
-            `<line x1="${r(period.centerX)}" y1="${r(section.axisY! + PERIOD_DOT_R)}" ` +
-            `x2="${r(period.centerX)}" y2="${r(lastEventY)}" class="${spineClass}"/>`
-          )
-        } else {
-          parts.push(
-            `<line x1="${r(section.axisX! + PERIOD_DOT_R)}" y1="${r(period.y)}" ` +
-            `x2="${r(section.axisX! + PERIOD_DOT_R + 12)}" y2="${r(period.y)}" ` +
-            `class="${spineClass}"/>`
-          )
-        }
+        parts.push(`<rect x="${r(period.x)}" y="${r(period.y)}" width="${r(period.width)}" height="${r(period.height)}" rx="0" class="timeline-box"/>`)
+        parts.push(
+          `<text x="${r(period.centerX)}" y="${r(period.y + period.height / 2)}" text-anchor="middle" ` +
+          `font-size="${FONT_SIZES.nodeLabel}" dy="${TEXT_BASELINE_SHIFT}" class="timeline-box-label">${escapeXml(period.label)}</text>`
+        )
 
         for (const ev of period.events) {
-          const dotX = positioned.direction === 'LR' ? period.centerX : section.axisX! + PERIOD_DOT_R + 12
+          parts.push(`<rect x="${r(ev.x)}" y="${r(ev.y)}" width="${r(ev.width)}" height="${r(ev.height)}" rx="0" class="timeline-box"/>`)
           parts.push(
-            `<circle cx="${r(dotX)}" cy="${r(ev.y)}" r="${EVENT_DOT_R}" ` +
-            `class="timeline-event-dot timeline-dot-color-${section.colorIndex}"/>`
+            `<text x="${r(period.centerX)}" y="${r(ev.y + ev.height / 2)}" text-anchor="middle" ` +
+            `font-size="${FONT_SIZES.nodeLabel}" dy="${TEXT_BASELINE_SHIFT}" class="timeline-event-label">${escapeXml(ev.text)}</text>`
+          )
+        }
+      }
+      continue
+    }
+
+    // TD: dot-based rendering.
+    const { axisX, axisY1, axisY2 } = section
+    if (axisX === undefined || axisY1 === undefined || axisY2 === undefined) continue
+    parts.push(
+      `<line x1="${r(axisX)}" y1="${r(axisY1)}" x2="${r(axisX)}" y2="${r(axisY2)}" ` +
+      `class="timeline-axis-line"/>`
+    )
+    for (const period of section.periods) {
+      parts.push(
+        `<circle cx="${r(axisX)}" cy="${r(period.y)}" r="${PERIOD_DOT_R}" ` +
+        `class="timeline-period-dot"/>`
+      )
+      parts.push(
+        `<text x="${r(axisX + PERIOD_DOT_R + 8)}" y="${r(period.y)}" text-anchor="start" ` +
+        `font-size="${FONT_SIZES.nodeLabel}" font-weight="${FONT_WEIGHTS.nodeLabel}" ` +
+        `dy="${TEXT_BASELINE_SHIFT}" class="timeline-period-label">${escapeXml(period.label)}</text>`
+      )
+
+      if (period.events.length > 0) {
+        parts.push(
+          `<line x1="${r(axisX + PERIOD_DOT_R)}" y1="${r(period.y)}" ` +
+          `x2="${r(axisX + PERIOD_DOT_R + 12)}" y2="${r(period.y)}" ` +
+          `class="timeline-spine"/>`
+        )
+        for (const ev of period.events) {
+          parts.push(
+            `<circle cx="${r(axisX + PERIOD_DOT_R + 12)}" cy="${r(ev.y)}" r="${EVENT_DOT_R}" ` +
+            `class="timeline-event-dot"/>`
           )
           parts.push(
             `<text x="${r(ev.x)}" y="${r(ev.y)}" text-anchor="start" ` +
             `font-size="${FONT_SIZES.edgeLabel}" font-weight="${FONT_WEIGHTS.edgeLabel}" ` +
-            `dy="${TEXT_BASELINE_SHIFT}" class="timeline-event-label">${escapeXml(ev.text)}</text>`
+            `dy="${TEXT_BASELINE_SHIFT}" class="timeline-event-label-side">${escapeXml(ev.text)}</text>`
           )
         }
       }

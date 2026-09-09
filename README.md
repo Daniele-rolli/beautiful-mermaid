@@ -353,7 +353,7 @@ pie showData
   "Product C" : 25
 ```
 
-Donut charts with slice percentages and an optional legend. Every slice carries a `data-value` attribute for consumers; the `showData` header flag is parsed for mermaid compatibility.
+Donut chart with slice percentages and legend. `showData` shows values; slices expose `data-value` attributes.
 
 ### Timeline
 
@@ -367,7 +367,7 @@ timeline LR
     2010 : Instagram
 ```
 
-Chronological event timelines. Direction defaults to `LR` (left-to-right); use `timeline TD` for a top-down layout. Periods come first (`{period} : {event}`), with one or more colon-separated events, or continuation lines starting with `:`. Optional `section <name>` lines group periods with a shared color scheme.
+Event timelines (`LR` default, `TD` supported). `{period} : {event}` with colon-separated events, `:` continuation lines, and optional `section` grouping.
 
 ### Mindmaps
 
@@ -381,7 +381,7 @@ mindmap
       (Branches)
 ```
 
-Indentation-based tree diagrams. Node shapes: `(text)` rounded, `[text]` square, `((text))` circle, `{{text}}` hexagon. The root is rendered in the accent color; descendants use muted fills.
+Indentation-based tree. Shapes: `(text)` rounded, `[text]` square, `((text))` circle, `{{text}}` hexagon.
 
 ### Quadrant Charts
 
@@ -397,7 +397,7 @@ quadrantChart
   Campaign A: [0.3, 0.6]
 ```
 
-2×2 prioritization grids with floating axis labels, quadrant labels, and plotted points.
+2×2 grid with axis labels, quadrant labels, and plotted points.
 
 ### Inline Edge Styling
 

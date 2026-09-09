@@ -45,8 +45,9 @@ describe('parseTimelineDiagram', () => {
     expect(d.sections[1]!.periods[0]!.label).toBe('2004')
   })
 
-  it('throws on invalid line', () => {
-    expect(() => parseTimelineDiagram(preprocess('timeline\n  random text'))).toThrow()
+  it('treats a stray line leniently instead of throwing', () => {
+    const d = parseTimelineDiagram(preprocess('timeline\n  random text'))
+    expect(d.sections).toHaveLength(1)
   })
 
   it('keeps consecutive section headers as separate sections', () => {

@@ -6,9 +6,8 @@ import { colorizeText } from './ansi.ts'
 // ============================================================================
 // ASCII renderer — Timeline
 //
-// Renders a timeline as vertical flow: sections top→down, periods left→right,
-// events listed below each period. The direction keyword is accepted by the
-// parser but the ASCII layout always flows vertically.
+// Renders a timeline as vertical flow: sections top→down, each period
+// boxed with its events. Direction is parsed but ASCII always flows vertically.
 // ============================================================================
 
 export function renderTimelineAscii(
@@ -27,7 +26,6 @@ export function renderTimelineAscii(
   const BL = config.useAscii ? '+' : '└'
   const BR = config.useAscii ? '+' : '┘'
 
-  // Collect all rows (plain text lines) first, then pad + box them.
   const rows: string[] = []
   if (diagram.title) rows.push(diagram.title)
 
@@ -39,7 +37,6 @@ export function renderTimelineAscii(
     }
   }
 
-  // Box each row: "┌ text ┐"
   const contentW = Math.max(...rows.map(r => r.length), 1)
   const accent = theme.accent ?? CHART_ACCENT_FALLBACK
   const bg = theme.bg
@@ -63,7 +60,6 @@ export function renderTimelineAscii(
     out.push('')
   }
 
-  // Trim trailing blank lines
   while (out.length > 0 && out[out.length - 1] === '') out.pop()
   return out.join('\n')
 }

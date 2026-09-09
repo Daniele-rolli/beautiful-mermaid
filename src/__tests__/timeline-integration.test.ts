@@ -48,10 +48,13 @@ describe('timeline – SVG rendering', () => {
     expect(svg).toContain('History of Social Media')
   })
 
-  it('emits per-section color classes', async () => {
+  it('renders flat boxes without per-section colors', async () => {
     const svg = await renderMermaid(LR)
-    expect(svg).toContain('timeline-period-color-0')
-    expect(svg).toContain('timeline-period-color-1')
+    expect(svg).toContain('timeline-box')
+    expect(svg).toContain('var(--_node-fill)')
+    expect(svg).not.toContain('timeline-period-color-')
+    expect(svg).not.toContain('timeline-dot-color-')
+    expect(svg).not.toContain('data-timeline-colors')
   })
 
   it('does not render a label for the implicit default section', async () => {

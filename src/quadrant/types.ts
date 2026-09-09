@@ -13,9 +13,7 @@ export interface QuadrantAxis {
 
 export interface QuadrantPoint {
   label: string
-  /** Normalized x in [0, 1] over xAxis.min..max */
   x: number
-  /** Normalized y in [0, 1] over yAxis.min..max */
   y: number
 }
 

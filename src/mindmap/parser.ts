@@ -79,7 +79,6 @@ function buildTree(entries: Array<{ depth: number; text: string; shape: MindmapS
   const stack: Array<{ depth: number; node: MindmapNode }> = [{ depth: rootDepth, node: root }]
 
   for (const entry of entries.slice(1)) {
-    // Pop stack until we find a parent with depth < entry.depth
     while (stack.length > 0 && stack[stack.length - 1]!.depth >= entry.depth) {
       stack.pop()
     }

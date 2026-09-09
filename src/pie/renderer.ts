@@ -5,14 +5,14 @@ import { escapeXml } from '../multiline-utils.ts'
 import { TEXT_BASELINE_SHIFT, FONT_SIZES, FONT_WEIGHTS } from '../styles.ts'
 
 // ============================================================================
-// Pie chart — SVG renderer
+// Pie chart SVG renderer
 //
-// Visual style: clean donut, matching the library's Apple/Craft aesthetic.
-//   - Donut (annular) slices, gap-free
-//   - Percent labels at the ring midline, centered on each slice
-//   - Legend on the right with color swatches
-//   - Each slice carries a data-value attribute for consumers/tooltips; the
-//     legend shows label + percentage
+// Renders a positioned pie chart (donut) to SVG string.
+//
+// Structure:
+//   1. Title
+//   2. Donut slices with percent labels
+//   3. Legend rows (swatch + label + value + percent)
 // ============================================================================
 
 export interface PositionedPieSlice {
@@ -119,7 +119,7 @@ export function renderPieSvg(
 
   parts.push(`<style>
   .pie-slice { stroke: var(--bg); stroke-width: 2; }
-  .pie-label { fill: var(--_text-sec); }
+  .pie-label { fill: var(--bg); }
   .pie-legend-label { fill: var(--_text); }
   .pie-legend-value { fill: var(--_text); }
   .pie-legend-pct { fill: var(--_text-muted); }
@@ -151,8 +151,7 @@ ${seriesRules.join('\n')}
     )
   }
 
-  // Legend — one row per slice: swatch · label · value · percent.
-  // Value and percent are right-aligned so numbers line up and read easily.
+  // Legend rows
   for (const item of positioned.legend) {
     parts.push(
       `<rect x="${r(item.swatchX)}" y="${r(item.y - 7)}" width="14" height="14" rx="3" ` +

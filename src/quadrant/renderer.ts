@@ -5,11 +5,8 @@ import { escapeXml } from '../multiline-utils.ts'
 import { TEXT_BASELINE_SHIFT, FONT_SIZES, FONT_WEIGHTS } from '../styles.ts'
 
 // ============================================================================
-// Quadrant chart — SVG renderer
-//
-// 2×2 grid, no axis lines/tick marks — labels float freely (Apple/Craft
-// aesthetic). Divider lines cross the plot. Points are accent-colored dots
-// with labels.
+// Quadrant chart SVG renderer — 2×2 grid with floating axis labels,
+// divider lines, quadrant labels, and points.
 // ============================================================================
 
 export interface PositionedQuadrantPoint {
